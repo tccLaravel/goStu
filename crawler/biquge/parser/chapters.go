@@ -3,12 +3,11 @@ package parser
 import (
 	"fmt"
 	"goStu/crawler/engine"
-	"goStu/crawler/fetcher"
 	"os"
 	"regexp"
 )
 
-const fileName  = "../tcc.txt"
+const fileName  = "./tcc.txt"
 const parserChaptersRe  = `<dd><a href="(/77_77363/[0-9]+.html)"[^>]*>([^<]+)</a></dd>`
 func ChaptersParser(contents []byte)  engine.ParseResult{
 	re := regexp.MustCompile(parserChaptersRe)
@@ -18,7 +17,7 @@ func ChaptersParser(contents []byte)  engine.ParseResult{
 	for _, m := range matchs{
 		//fmt.Printf("%s \n",m)
 		//fmt.Printf("chapter: %s, URL: %s \n",m[2],m[1])
-		result.Items = append(result.Items,m[2])
+		//result.Items = append(result.Items,string(m[2]))
 		err := appendToFile(fileName, string(m[2])+"\n")
 		if err != nil {
 			fmt.Println("write error : " + err.Error())
@@ -26,22 +25,9 @@ func ChaptersParser(contents []byte)  engine.ParseResult{
 		result.Requests = append(result.Requests,engine.Request{
 			//Url:string(m[1]),
 			Url:fmt.Sprintf("%s%s","https://www.xbiquge6.com",string(m[1])),
-			ParserFunc:engine.NilParser,
+			ParserFunc:ContentsParser,
 		})
-		bytes, e := fetcher.Fetch(fmt.Sprintf("%s%s", "https://www.xbiquge6.com", string(m[1])))
-		if e != nil{
-			return  result
-		}
-		result.Content = ContentsParser(bytes)
-		//fmt.Printf("result %v \n",result)
-		err = appendToFile(fileName, fmt.Sprintf("%s \n", result.Content[0]))
-		if err != nil {
-			fmt.Println("write error : " + err.Error())
-		}
-		break
 	}
-	//fmt.Printf("result %v \n",result)
-	//fmt.Printf("result %v \n",article)
 	return result
 }
 

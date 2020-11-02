@@ -8,13 +8,31 @@ import (
 	engine2 "goStu/crawler/engine"
 	"goStu/route"
 	"net/http"
+	"strconv"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 )
 
+
+
 func main() {
-	engine2.Run(engine2.Request{
+	db, err := sql.Open("mysql", "user:password@/dbname")
+	fmt.Println(db)
+	fmt.Println(err)
+	fmt.Println(strconv.Atoi("003 "))
+	engine2.SimpleEngine{}.Run(engine2.Request{
 		Url:"https://www.xbiquge6.com/77_77363/",
 		ParserFunc:parser.ChaptersParser,
 	})
+	//e := engine2.ConcurrentEngine{
+	//	&scheduler.SimpleScheduler{},
+	//	10,
+	//}
+	//e.Run(engine2.Request{
+	//	Url:"https://www.xbiquge6.com/77_77363/",
+	//	ParserFunc:parser.ChaptersParser,
+	//})
+
 	fmt.Println("使用外部包测试",configor.Config{})
 	fmt.Println("使用内部包测试",route.Hello())
 	// 初始化引擎

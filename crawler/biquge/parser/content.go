@@ -1,23 +1,42 @@
 package parser
 
 import (
+	"fmt"
+	"goStu/crawler/engine"
+	"goStu/crawler/model"
+	"log"
 	"regexp"
+	"strconv"
 )
-//([\s|\S]*)?
-const ContentsParserRe = `<div id="content">(?s:(.*?))<\/div>`
 
-//const ContentsParserRe = `<li><a href="/xclass/1/1.html">([^<]+)</a></li>`
-func ContentsParser(contents []byte) []interface{}{
-	re := regexp.MustCompile(ContentsParserRe)
-	//log.Printf(" regexp  %v \n",re)
-	//log.Printf("contents is %s \n",contents)
-	matchs := re.FindAllSubmatch(contents,-1)
-	//matchs := re.FindAll(contents, -1)
-	var result  []interface{}
-	//log.Printf(" matchs0----- %s \n",matchs[0])
-	for _, m := range matchs{
-		//fmt.Printf("match %s \n",m[1])
-		result = append(result, m[1])
+var contentsRe = regexp.MustCompile(`<div id="content">(?s:(.*?))</div>`)
+var titleRe = regexp.MustCompile(`<h1>([0-9]+)([^<]+)</h1>`)
+
+func ContentsParser(contents []byte) engine.ParseResult{
+	result  := engine.ParseResult{}
+	article := model.Article{}
+
+	titleMatchs := titleRe.FindSubmatch(contents)
+	if titleMatchs != nil {
+		article.Title = string(titleMatchs[2])
+		chapterNum,err := strconv.Atoi(string(titleMatchs[1]))
+		fmt.Println(chapterNum,err)
+		if err != nil{
+			article.ChapterNum = 0
+		}else{
+			article.ChapterNum = chapterNum
+		}
 	}
+	article.Content = extractString(contents,contentsRe)
+	result.Items = append(result.Items,article)
+	log.Printf("Got Result: %v \n",result)
 	return result
+}
+
+func extractString(contents []byte,re *regexp.Regexp)  string{
+	match := re.FindSubmatch(contents)
+	if match != nil && len(match) >= 2{
+		return string(match[1])
+	}
+	return ""
 }
